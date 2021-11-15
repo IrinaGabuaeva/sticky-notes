@@ -55,9 +55,15 @@ function Screen() {
     setListOfNotes(newList);
   };
 
+  const clearAll = () => {
+    setListOfNotes([]);
+  };
   return (
     <div className="Screen" ref={drop} onDoubleClick={(e) => console.log("HI")}>
       <h3>Double click anywhere on the screen to create a note :)</h3>
+      <button style={{ height: "30px" }} onClick={() => clearAll()}>
+        Clear All
+      </button>
       {listOfNotes
         ? listOfNotes.map((note, id) => {
             return (
