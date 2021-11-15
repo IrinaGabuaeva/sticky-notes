@@ -5,16 +5,28 @@ import { useState, useEffect } from "react";
 function Screen() {
   const [listOfNotes, setListOfNotes] = useState([]);
   console.log("listOfNotes", listOfNotes);
-  const createNote = () => {
+
+  const createNote = (x, y) => {
+    console.log("X, Y", x, y);
+    x -= 100;
+    y -= 100;
     const newNote = {
       position: {
-        x: 0,
-        y: 0,
+        x,
+        y,
       },
       text: "",
     };
     setListOfNotes((listOfNotes) => [...listOfNotes, newNote]);
   };
+
+  useEffect(() => {
+    const setFromEvent = (e) => createNote(e.clientX, e.clientY);
+    window.addEventListener("dblclick", setFromEvent);
+    return () => {
+      window.removeEventListener("dblclick", setFromEvent);
+    };
+  }, []);
 
   const moveNote = (id, position) => {
     const newList = [...listOfNotes];
@@ -34,15 +46,25 @@ function Screen() {
     [moveNote]
   );
 
+  const deleteNote = (id) => {
+    const newList = listOfNotes
+      .slice(0, id)
+      .concat(listOfNotes.slice(id + 1, listOfNotes.length));
+    console.log("id", id);
+    console.log("newList", newList);
+    setListOfNotes(newList);
+  };
+
   return (
-    <div className="Screen" ref={drop}>
+    <div className="Screen" ref={drop} onDoubleClick={(e) => console.log("HI")}>
+      <h3>Double click anywhere on the screen to create a note :)</h3>
       {listOfNotes
         ? listOfNotes.map((note, id) => {
-            return <Note note={note} key={id} id={id} />;
+            return (
+              <Note note={note} key={id} id={id} deleteNote={deleteNote} />
+            );
           })
         : ""}
-
-      <button onClick={() => createNote()}>New Note</button>
     </div>
   );
 }
@@ -53,14 +75,12 @@ function Note(props) {
   const [noteText, setText] = useState("");
   const [clicked, setClicked] = useState(false);
   console.log("clicked", clicked);
-  console.log("x, y:", x, y);
   const id = props.id;
   const [, drag] = useDrag(() => ({
     type: "NOTE",
     item: { id, noteText },
   }));
 
-  console.log("drag", drag);
   return (
     <div
       className="Note"
@@ -68,6 +88,7 @@ function Note(props) {
       ref={drag}
       onClick={() => setClicked(true)}
     >
+      <button onClick={() => props.deleteNote(id)}>X</button>
       {clicked ? (
         <textarea
           className="NoteText"
