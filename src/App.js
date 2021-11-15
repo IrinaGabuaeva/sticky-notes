@@ -1,15 +1,28 @@
 import "./App.css";
 import { useDrag, useDrop } from "react-dnd";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 function Screen() {
-  const [listOfNotes, setListOfNotes] = useState([]);
+  const defaultList =
+    JSON.parse(window.localStorage.getItem("listOfNotes")) ?? [];
+  console.log("defaultList", defaultList);
+  let [listOfNotes, setLocalList] = useState(defaultList);
   console.log("listOfNotes", listOfNotes);
+  console.log("string version", JSON.stringify(listOfNotes));
+
+  const listOfNotesRef = useRef(listOfNotes);
+
+  const setListOfNotes = (listOfNotes) => {
+    console.log("list!!!!", listOfNotes);
+    window.localStorage.setItem("listOfNotes", JSON.stringify(listOfNotes));
+    listOfNotesRef.current = listOfNotes;
+    setLocalList(listOfNotes);
+  };
 
   const createNote = (x, y) => {
     console.log("X, Y", x, y);
-    x -= 100;
-    y -= 100;
+    x -= 125;
+    y -= 125;
     const newNote = {
       position: {
         x,
@@ -17,7 +30,9 @@ function Screen() {
       },
       text: "",
     };
-    setListOfNotes((listOfNotes) => [...listOfNotes, newNote]);
+    console.log("Add new note!!", [...listOfNotes, newNote]);
+    console.log("LIST IN CREATE NEW NOTE", listOfNotes);
+    setListOfNotes([...listOfNotesRef.current, newNote]);
   };
 
   useEffect(() => {
@@ -59,7 +74,7 @@ function Screen() {
     setListOfNotes([]);
   };
   return (
-    <div className="Screen" ref={drop} onDoubleClick={(e) => console.log("HI")}>
+    <div className="Screen" ref={drop}>
       <h3>Double click anywhere on the screen to create a note :)</h3>
       <button style={{ height: "30px" }} onClick={() => clearAll()}>
         Clear All
@@ -78,7 +93,7 @@ function Screen() {
 function Note(props) {
   console.log("props", props);
   const { x, y, text } = props.note.position;
-  const [noteText, setText] = useState("");
+  const [noteText, setText] = useState(text);
   const [clicked, setClicked] = useState(false);
   console.log("clicked", clicked);
   const id = props.id;
@@ -95,6 +110,7 @@ function Note(props) {
       onClick={() => setClicked(true)}
     >
       <button onClick={() => props.deleteNote(id)}>X</button>
+
       {clicked ? (
         <textarea
           className="NoteText"
@@ -114,5 +130,4 @@ function Note(props) {
     </div>
   );
 }
-
 export default Screen;
