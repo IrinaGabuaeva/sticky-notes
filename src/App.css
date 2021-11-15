@@ -1,14 +1,5 @@
 .App {
   text-align: center;
-  
-}
-
-.Note {
-  height: 100px;
-  width: 100px;
-  background-color: yellow;
-  border: 1px solid red;
-  position: absolute;
 }
 
 .Screen {
@@ -17,16 +8,26 @@
   height: 100%;
 }
 
-
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.Note {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  height: 200px;
+  width: 200px;
+  background-color: yellow;
+  border: 1px solid red;
+  position: absolute;
 }
 
+.NoteText {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px;
+  text-align: center;
+  font: inherit;
+  color: inherit;
+  border: 1px solid blue;
+  overflow-wrap: break-word;
+  background-color: inherit;
+  border: none;
+  outline: none;
+  resize: none;
+}

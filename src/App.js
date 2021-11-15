@@ -18,53 +18,24 @@ function Screen() {
 
   const moveNote = (id, position) => {
     const newList = [...listOfNotes];
-    newList[id] = position;
+    newList[id].position = position;
+    console.log("newList", newList);
     setListOfNotes(newList);
   };
 
-  const [{ getItem, didDrop, getSourceClientOffset }, drop] = useDrop(
+  const [, drop] = useDrop(
     () => ({
       accept: "NOTE",
       drop: (item, monitor) => {
-        // console.log(
-        //   "monitor.getSourceClientOffset()",
-        //   monitor.getSourceClientOffset()
-        // );
-        const coordinates = monitor.getSourceClientOffset();
-        console.log("coordinates", coordinates);
-        // setListOfNotes((listOfNotes[item.id] = coordinates));
-        console.log("LIST", listOfNotes[item.id]);
-        moveNote(item.id, coordinates);
+        const position = monitor.getSourceClientOffset();
+        moveNote(item.id, position, item.noteText);
       },
-      // collect: (monitor) => ({
-      //   didDrop: !!monitor.didDrop(),
-      //   getItem: monitor.getItem(),
-      //   getSourceClientOffset: monitor.getSourceClientOffset(),
-      // }),
     }),
     [moveNote]
   );
 
-  console.log("item!!", getItem);
-  console.log("didDrop", didDrop);
-
-  // console.log("getClientOffset", getClientOffset);
-  console.log("getSourceClientOffset()", getSourceClientOffset);
-
-  // useEffect(() => {
-  //   const position = {};
-  //   const setFromEvent = (e) =>
-  //     console.log("IN USE EFFECT", { x: e.clientX, y: e.clientY });
-
-  //   window.addEventListener("mousemove", setFromEvent);
-  //   return () => {
-  //     window.removeEventListener("mousemove", setFromEvent);
-  //   };
-  // }, [didDrop]);
-
   return (
     <div className="Screen" ref={drop}>
-      {didDrop ? moveNote(getItem.id, getSourceClientOffset) : ""}
       {listOfNotes
         ? listOfNotes.map((note, id) => {
             return <Note note={note} key={id} id={id} />;
@@ -77,24 +48,42 @@ function Screen() {
 }
 
 function Note(props) {
-  // console.log("props", props);
-  const { x, y, text } = props.note;
+  console.log("props", props);
+  const { x, y, text } = props.note.position;
+  const [noteText, setText] = useState("");
+  const [clicked, setClicked] = useState(false);
+  console.log("clicked", clicked);
+  console.log("x, y:", x, y);
   const id = props.id;
   const [, drag] = useDrag(() => ({
     type: "NOTE",
-    item: { id },
-
-    collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
-    }),
+    item: { id, noteText },
   }));
-  // console.log("monitor on draggable", monitor);
-  // console.log("item on draggable", item);
-  // console.log("collect on draggable", collect);
+
   console.log("drag", drag);
   return (
-    <div className="Note" style={{ left: `${x}px`, top: `${y}px` }} ref={drag}>
-      {text}
+    <div
+      className="Note"
+      style={{ left: `${x}px`, top: `${y}px` }}
+      ref={drag}
+      onClick={() => setClicked(true)}
+    >
+      {clicked ? (
+        <textarea
+          className="NoteText"
+          value={noteText}
+          autoFocus
+          onFocus={(e) => {
+            let val = e.target.value;
+            e.target.value = "";
+            e.target.value = val;
+          }}
+          onChange={(e) => setText(e.target.value)}
+          onBlur={() => setClicked(false)}
+        />
+      ) : (
+        <div className="NoteText">{noteText}</div>
+      )}
     </div>
   );
 }
