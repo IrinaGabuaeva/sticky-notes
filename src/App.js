@@ -5,22 +5,16 @@ import { useState, useEffect, useRef } from "react";
 function Screen() {
   const defaultList =
     JSON.parse(window.localStorage.getItem("listOfNotes")) ?? [];
-  console.log("defaultList", defaultList);
   let [listOfNotes, setLocalList] = useState(defaultList);
-  console.log("listOfNotes", listOfNotes);
-  console.log("string version", JSON.stringify(listOfNotes));
-
   const listOfNotesRef = useRef(listOfNotes);
 
   const setListOfNotes = (listOfNotes) => {
-    console.log("list!!!!", listOfNotes);
     window.localStorage.setItem("listOfNotes", JSON.stringify(listOfNotes));
     listOfNotesRef.current = listOfNotes;
     setLocalList(listOfNotes);
   };
 
   const createNote = (x, y) => {
-    console.log("X, Y", x, y);
     x -= 125;
     y -= 125;
     const newNote = {
@@ -30,8 +24,6 @@ function Screen() {
       },
       text: "",
     };
-    console.log("Add new note!!", [...listOfNotes, newNote]);
-    console.log("LIST IN CREATE NEW NOTE", listOfNotes);
     setListOfNotes([...listOfNotesRef.current, newNote]);
   };
 
@@ -46,7 +38,6 @@ function Screen() {
   const moveNote = (id, position) => {
     const newList = [...listOfNotes];
     newList[id].position = position;
-    console.log("newList", newList);
     setListOfNotes(newList);
   };
 
@@ -65,42 +56,66 @@ function Screen() {
     const newList = listOfNotes
       .slice(0, id)
       .concat(listOfNotes.slice(id + 1, listOfNotes.length));
-    console.log("id", id);
-    console.log("newList", newList);
     setListOfNotes(newList);
   };
 
   const clearAll = () => {
     setListOfNotes([]);
   };
+  const saveText = (id, text) => {
+    const newList = [...listOfNotes];
+    newList[id].text = text;
+    setListOfNotes(newList);
+  };
   return (
     <div className="Screen" ref={drop}>
-      <h3>Double click anywhere on the screen to create a note :)</h3>
-      <button style={{ height: "30px" }} onClick={() => clearAll()}>
-        Clear All
-      </button>
+      <h3 className="Text">
+        Double click anywhere on the screen to create a note
+      </h3>
       {listOfNotes
         ? listOfNotes.map((note, id) => {
             return (
-              <Note note={note} key={id} id={id} deleteNote={deleteNote} />
+              <Note
+                note={note}
+                key={id}
+                id={id}
+                deleteNote={deleteNote}
+                saveText={saveText}
+              />
             );
           })
         : ""}
+      <button
+        className="ClearButton"
+        style={{ height: "30px" }}
+        onClick={() => clearAll()}
+      >
+        Clear All
+      </button>
     </div>
   );
 }
 
 function Note(props) {
-  console.log("props", props);
-  const { x, y, text } = props.note.position;
+  console.log("PROPS", props);
+  const { x, y } = props.note.position;
+  const { text } = props.note;
+  console.log("text", text);
+  const id = props.id;
+  console.log("id", id);
   const [noteText, setText] = useState(text);
   const [clicked, setClicked] = useState(false);
-  console.log("clicked", clicked);
-  const id = props.id;
+  console.log("noteText", noteText);
   const [, drag] = useDrag(() => ({
     type: "NOTE",
     item: { id, noteText },
   }));
+
+  const saveText = () => {
+    console.log("BLURR");
+    setClicked(false);
+    props.saveText(id, noteText);
+  };
 
   return (
     <div
@@ -109,8 +124,6 @@ function Note(props) {
       ref={drag}
       onClick={() => setClicked(true)}
     >
-      <button onClick={() => props.deleteNote(id)}>X</button>
-
       {clicked ? (
         <textarea
           className="NoteText"
@@ -122,11 +135,14 @@ function Note(props) {
             e.target.value = val;
           }}
           onChange={(e) => setText(e.target.value)}
-          onBlur={() => setClicked(false)}
+          onMouseLeave={() => saveText()}
         />
       ) : (
         <div className="NoteText">{noteText}</div>
       )}
+      <button className="DeleteButton" onClick={() => props.deleteNote(id)}>
+        X
+      </button>
     </div>
   );
 }
