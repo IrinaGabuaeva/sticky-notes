@@ -8,15 +8,16 @@ export default function Screen() {
     JSON.parse(window.localStorage.getItem("listOfNotes")) ?? {};
 
   const [listOfNotes, setListOfNotes] = useState(defaultList);
-  console.log("LIST:::", listOfNotes)
+  console.log("LIST:::", listOfNotes);
   const listOfNotesRef = useRef(listOfNotes);
-  const [bgColor, setBgColor] = useState('')
-  console.log("COLOR!!", bgColor)
-  const defaultColor = bgColor || '#0db9a1'
-console.log("defaultColor", defaultColor)
-  const setAllNotes = (list) => {
+  const [defaultBgColor, setDefaultBgColor] = useState("#0db9a1");
+  const defaultBgColorRef = useRef(defaultBgColor);
+  console.log("COLOR!!", defaultBgColorRef);
+
+  const updateState = (list) => {
     window.localStorage.setItem("listOfNotes", JSON.stringify(list));
     listOfNotesRef.current = list;
+    setListOfNotes(list);
   };
 
   const noteIds = Object.keys(listOfNotes);
@@ -32,12 +33,14 @@ console.log("defaultColor", defaultColor)
         y,
       },
       text: "",
-      bgColor: defaultColor
+      bgColor: defaultBgColorRef.current,
     };
-    console.log("NEW NOTE COLOR", newNote.bgColor)
-    listOfNotesRef.current[currentId.toString()] = newNote;
-    setAllNotes(listOfNotesRef.current);
-    setListOfNotes((prev) => ({ ...prev, [currentId.toString()]: newNote }));
+    console.log("NEW NOTE COLOR", newNote.bgColor);
+    const newList = {
+      ...listOfNotesRef.current,
+      [currentId.toString()]: newNote,
+    };
+    updateState(newList);
     currentId++;
   };
 
@@ -52,7 +55,7 @@ console.log("defaultColor", defaultColor)
   const moveNote = (id, position) => {
     const newList = { ...listOfNotes };
     newList[id].position = position;
-    setListOfNotes(newList);
+    updateState(newList);
   };
 
   const [, drop] = useDrop(
@@ -69,29 +72,28 @@ console.log("defaultColor", defaultColor)
   const deleteNote = (id) => {
     delete listOfNotes[id];
     const newList = { ...listOfNotes };
-    setListOfNotes(newList);
-    setAllNotes(newList);
+    updateState(newList);
   };
 
   const clearAll = () => {
-    setListOfNotes({});
-    setAllNotes({});
+    updateState({});
   };
 
   const saveText = (id, text) => {
     const newList = { ...listOfNotes };
     newList[id].text = text;
-    setListOfNotes(newList);
-    setAllNotes(newList);
+    updateState(newList);
   };
 
   const changeBgColor = (id, color) => {
-    const newList = { ...listOfNotes}
-    newList[id].bgColor= color;
-    setListOfNotes(newList);
-    setAllNotes(newList);
-    setBgColor(color)
-  }
+    const newList = { ...listOfNotes };
+    newList[id].bgColor = color;
+    updateState(newList);
+    defaultBgColorRef.current = color;
+    const newColor = defaultBgColorRef.current;
+    console.log("DEFAULT COLOR REF", defaultBgColorRef.current);
+    setDefaultBgColor(newColor);
+  };
   return (
     <div className="Screen" ref={drop}>
       <h3 className="Text">
