@@ -1,22 +1,28 @@
 import "./App.css";
-import { useDrag, useDrop } from "react-dnd";
+import { useDrop } from "react-dnd";
 import { useState, useEffect, useRef } from "react";
+import Note from "./Note";
 
-function Screen() {
+export default function Screen() {
   const defaultList =
     JSON.parse(window.localStorage.getItem("listOfNotes")) ?? {};
 
   const [listOfNotes, setListOfNotes] = useState(defaultList);
+  console.log("LIST:::", listOfNotes)
   const listOfNotesRef = useRef(listOfNotes);
-
+  const [bgColor, setBgColor] = useState('')
+  console.log("COLOR!!", bgColor)
+  const defaultColor = bgColor || '#0db9a1'
+console.log("defaultColor", defaultColor)
   const setAllNotes = (list) => {
     window.localStorage.setItem("listOfNotes", JSON.stringify(list));
-    // listOfNotesRef.current = list;
+    listOfNotesRef.current = list;
   };
 
   const noteIds = Object.keys(listOfNotes);
   const lastNoteId = noteIds[noteIds.length - 1];
   let currentId = lastNoteId ? parseInt(lastNoteId) + 1 : 1;
+
   const createNote = (x, y) => {
     x -= 125;
     y -= 125;
@@ -26,7 +32,9 @@ function Screen() {
         y,
       },
       text: "",
+      bgColor: defaultColor
     };
+    console.log("NEW NOTE COLOR", newNote.bgColor)
     listOfNotesRef.current[currentId.toString()] = newNote;
     setAllNotes(listOfNotesRef.current);
     setListOfNotes((prev) => ({ ...prev, [currentId.toString()]: newNote }));
@@ -77,6 +85,13 @@ function Screen() {
     setAllNotes(newList);
   };
 
+  const changeBgColor = (id, color) => {
+    const newList = { ...listOfNotes}
+    newList[id].bgColor= color;
+    setListOfNotes(newList);
+    setAllNotes(newList);
+    setBgColor(color)
+  }
   return (
     <div className="Screen" ref={drop}>
       <h3 className="Text">
@@ -91,6 +106,7 @@ function Screen() {
             key={id}
             deleteNote={deleteNote}
             saveText={saveText}
+            changeBgColor={changeBgColor}
           />
         );
       })}
@@ -104,57 +120,3 @@ function Screen() {
     </div>
   );
 }
-
-function Note(props) {
-  console.log("Props:", props);
-  const { x, y } = props.note.position;
-  const { text } = props.note;
-  const { id } = props;
-
-  const [noteText, setText] = useState(text);
-  const [clicked, setClicked] = useState(false);
-
-  const [, drag] = useDrag(() => ({
-    type: "NOTE",
-    item: { id, noteText },
-  }));
-
-  const saveText = () => {
-    setClicked(false);
-    props.saveText(id, noteText);
-  };
-
-  const deleteNote = (id) => {
-    props.deleteNote(id);
-  };
-
-  return (
-    <div
-      className="Note"
-      style={{ left: `${x}px`, top: `${y}px` }}
-      ref={drag}
-      onClick={() => setClicked(true)}
-    >
-      {clicked ? (
-        <textarea
-          className="NoteText"
-          value={noteText}
-          autoFocus
-          onFocus={(e) => {
-            let val = e.target.value;
-            e.target.value = "";
-            e.target.value = val;
-          }}
-          onChange={(e) => setText(e.target.value)}
-          onBlur={() => saveText()}
-        />
-      ) : (
-        <div className="NoteText">{noteText}</div>
-      )}
-      <button className="DeleteButton" onClick={() => deleteNote(id)}>
-        X
-      </button>
-    </div>
-  );
-}
-export default Screen;
