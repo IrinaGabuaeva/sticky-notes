@@ -2,18 +2,26 @@ import "./App.css";
 import { useDrop } from "react-dnd";
 import { useState, useEffect, useRef } from "react";
 import Note from "./Note";
+import Canvas from "./Canvas";
 
 export default function Screen() {
   const defaultList =
     JSON.parse(window.localStorage.getItem("listOfNotes")) ?? {};
 
   const [listOfNotes, setListOfNotes] = useState(defaultList);
-  console.log("LIST:::", listOfNotes);
   const listOfNotesRef = useRef(listOfNotes);
   const [defaultBgColor, setDefaultBgColor] = useState("#0db9a1");
+  const [isDrawingOn, setIsDrawingOn] = useState(false);
   const defaultBgColorRef = useRef(defaultBgColor);
-  console.log("COLOR!!", defaultBgColorRef);
 
+  const colors = {
+    teal: "#0db9a1",
+    purple: "#6610f2",
+    blue: "#007bff",
+    pink: "#ef476f",
+    yellow: "#ffc145",
+  };
+  const [pencilColor, setPencilColor] = useState(colors.teal);
   const updateState = (list) => {
     window.localStorage.setItem("listOfNotes", JSON.stringify(list));
     listOfNotesRef.current = list;
@@ -35,7 +43,7 @@ export default function Screen() {
       text: "",
       bgColor: defaultBgColorRef.current,
     };
-    console.log("NEW NOTE COLOR", newNote.bgColor);
+
     const newList = {
       ...listOfNotesRef.current,
       [currentId.toString()]: newNote,
@@ -91,14 +99,41 @@ export default function Screen() {
     updateState(newList);
     defaultBgColorRef.current = color;
     const newColor = defaultBgColorRef.current;
-    console.log("DEFAULT COLOR REF", defaultBgColorRef.current);
     setDefaultBgColor(newColor);
   };
+
+  const toggle = () => {
+    isDrawingOn ? setIsDrawingOn(false) : setIsDrawingOn(true);
+  };
   return (
-    <div className="Screen" ref={drop}>
+    <div
+      className="Screen"
+      ref={drop}
+      // onDoubleClick={(e) => createNote(e.clientX, e.clientY)}
+    >
       <h3 className="Text">
         Double click anywhere on the screen to create a note
       </h3>
+      {isDrawingOn && (
+        <>
+          <Canvas pencilColor={pencilColor} />
+          <div className="Colors">
+            {Object.values(colors).map((color) => {
+              return (
+                <div
+                  key={color}
+                  className="Circle"
+                  style={{ background: color }}
+                  onClick={() => setPencilColor(color)}
+                />
+              );
+            })}
+            <button onClick={() => setPencilColor("rgba(255, 193, 69, 0.055)")}>
+              Eraser
+            </button>
+          </div>
+        </>
+      )}
       {console.log("listOfNotes in render", listOfNotes)}
       {Object.keys(listOfNotes).map((id) => {
         return (
@@ -113,11 +148,19 @@ export default function Screen() {
         );
       })}
       <button
-        className="ClearButton"
-        style={{ height: "30px" }}
+        className="Button"
+        style={{ left: "37%" }}
         onClick={() => clearAll()}
       >
-        Clear All
+        Clear All Notes
+      </button>
+
+      <button
+        className="Button"
+        style={{ right: "37%" }}
+        onClick={() => toggle()}
+      >
+        {!isDrawingOn ? `Draw` : `Stop Drawing`}
       </button>
     </div>
   );
