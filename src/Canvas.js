@@ -89,7 +89,8 @@ export default function Canvas(props) {
     if (context) {
       context.strokeStyle = props.pencilColor;
       context.lineJoin = "round";
-      context.lineWidth = 5;
+      console.log("pencilWWWidth", typeof props.pencilWidth);
+      context.lineWidth = props.pencilWidth;
 
       context.beginPath();
       context.moveTo(originalMousePosition.x, originalMousePosition.y);
@@ -99,6 +100,9 @@ export default function Canvas(props) {
       context.stroke();
     }
   };
+  {
+    console.log("pencilwidth", props.pencilWidth);
+  }
   return (
     <canvas
       id="canvas"

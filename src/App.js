@@ -1,30 +1,22 @@
 import "./App.css";
 import { useDrop } from "react-dnd";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import Note from "./Note";
 import Canvas from "./Canvas";
+import { colors } from "./Colors";
 
 export default function Screen() {
   const defaultList =
     JSON.parse(window.localStorage.getItem("listOfNotes")) ?? {};
 
   const [listOfNotes, setListOfNotes] = useState(defaultList);
-  const listOfNotesRef = useRef(listOfNotes);
   const [defaultBgColor, setDefaultBgColor] = useState("#0db9a1");
   const [isDrawingOn, setIsDrawingOn] = useState(false);
-  const defaultBgColorRef = useRef(defaultBgColor);
-
-  const colors = {
-    teal: "#0db9a1",
-    purple: "#6610f2",
-    blue: "#007bff",
-    pink: "#ef476f",
-    yellow: "#ffc145",
-  };
   const [pencilColor, setPencilColor] = useState(colors.teal);
+  const [pencilWidth, setPencilWidth] = useState(5);
+
   const updateState = (list) => {
     window.localStorage.setItem("listOfNotes", JSON.stringify(list));
-    listOfNotesRef.current = list;
     setListOfNotes(list);
   };
 
@@ -41,24 +33,16 @@ export default function Screen() {
         y,
       },
       text: "",
-      bgColor: defaultBgColorRef.current,
+      bgColor: defaultBgColor,
     };
 
     const newList = {
-      ...listOfNotesRef.current,
+      ...listOfNotes,
       [currentId.toString()]: newNote,
     };
     updateState(newList);
     currentId++;
   };
-
-  useEffect(() => {
-    const setFromEvent = (e) => createNote(e.clientX, e.clientY);
-    window.addEventListener("dblclick", setFromEvent);
-    return () => {
-      window.removeEventListener("dblclick", setFromEvent);
-    };
-  }, []);
 
   const moveNote = (id, position) => {
     const newList = { ...listOfNotes };
@@ -97,26 +81,33 @@ export default function Screen() {
     const newList = { ...listOfNotes };
     newList[id].bgColor = color;
     updateState(newList);
-    defaultBgColorRef.current = color;
-    const newColor = defaultBgColorRef.current;
-    setDefaultBgColor(newColor);
+    setDefaultBgColor(color);
   };
 
   const toggle = () => {
     isDrawingOn ? setIsDrawingOn(false) : setIsDrawingOn(true);
   };
+  const changePencil = (color) => {
+    setPencilColor(color);
+    setPencilWidth(5);
+  };
+  const startEraser = () => {
+    setPencilColor("#f5f4f1");
+    setPencilWidth(10);
+  };
+
   return (
     <div
       className="Screen"
       ref={drop}
-      // onDoubleClick={(e) => createNote(e.clientX, e.clientY)}
+      onDoubleClick={(e) => createNote(e.clientX, e.clientY)}
     >
       <h3 className="Text">
         Double click anywhere on the screen to create a note
       </h3>
       {isDrawingOn && (
         <>
-          <Canvas pencilColor={pencilColor} />
+          <Canvas pencilColor={pencilColor} pencilWidth={pencilWidth} />
           <div className="Colors">
             {Object.values(colors).map((color) => {
               return (
@@ -124,11 +115,20 @@ export default function Screen() {
                   key={color}
                   className="Circle"
                   style={{ background: color }}
-                  onClick={() => setPencilColor(color)}
+                  onClick={() => changePencil(color)}
                 />
               );
             })}
-            <button onClick={() => setPencilColor("rgba(255, 193, 69, 0.055)")}>
+            <button
+              className="DeleteButton"
+              style={{
+                border: "1px solid grey",
+                left: "100%",
+                bottom: "40%",
+                width: "70px",
+              }}
+              onClick={() => startEraser()}
+            >
               Eraser
             </button>
           </div>
