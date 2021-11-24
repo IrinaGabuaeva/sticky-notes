@@ -134,7 +134,6 @@ export default function Screen() {
           </div>
         </>
       )}
-      {console.log("listOfNotes in render", listOfNotes)}
       {Object.keys(listOfNotes).map((id) => {
         return (
           <Note

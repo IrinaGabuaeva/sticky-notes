@@ -27,7 +27,6 @@ export default function Canvas(props) {
 
   const paint = useCallback(
     (event) => {
-      console.log("paint event", event);
       if (isPainting) {
         const newMousePosition = getCoordinates(event);
         if (mousePosition && newMousePosition) {
@@ -89,7 +88,6 @@ export default function Canvas(props) {
     if (context) {
       context.strokeStyle = props.pencilColor;
       context.lineJoin = "round";
-      console.log("pencilWWWidth", typeof props.pencilWidth);
       context.lineWidth = props.pencilWidth;
 
       context.beginPath();
@@ -100,9 +98,7 @@ export default function Canvas(props) {
       context.stroke();
     }
   };
-  {
-    console.log("pencilwidth", props.pencilWidth);
-  }
+
   return (
     <canvas
       id="canvas"

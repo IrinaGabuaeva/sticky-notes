@@ -19,6 +19,7 @@
   position: absolute;
   border-radius: 35px;
   box-shadow: var(--shadow);
+  overflow: hidden;
 }
 
 .NoteText {
